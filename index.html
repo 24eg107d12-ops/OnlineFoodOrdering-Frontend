@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodExpress - Online Food Ordering</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="brand" onclick="showAllRestaurants()">
+                <div class="brand-logo"><i class="fa-solid fa-utensils"></i></div>
+                <div
+                
+                  class="brand-text">
+                    <span class="brand-title">Food<span class="highlight">Express</span></span>
+                    <span class="brand-subtitle">Fast & Fresh Delivery</span>
+                </div>
+            </div>
+
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search dishes, restaurants, or cuisines..." oninput="handleSearch(this.value)">
+            </div>
+
+            <div class="nav-actions">
+                <div class="backend-status" id="backendBadge" title="Backend Server Status">
+                    <span class="status-pulse"></span>
+                    <span id="backendStatusText">Connecting...</span>
+                </div>
+                <div id="authNavContainer">
+                    <button class="nav-btn" onclick="openAuthModal('login')">
+                        <i class="fa-solid fa-user"></i>
+                        <span>Sign In</span>
+                    </button>
+                </div>
+                <button class="nav-btn" onclick="openOrdersModal()">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Orders</span>
+                </button>
+                <button class="cart-btn" onclick="toggleCart()">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span>Cart</span>
+                    <span class="cart-badge" id="cartBadge">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <span class="hero-tag"><i class="fa-solid fa-bolt"></i> Delivered in 30 Mins</span>
+                <h1 class="hero-heading">Craving delicious food? <br>Order from the best restaurants!</h1>
+                <p class="hero-subtext">Explore top-rated local eateries with fresh ingredients and lightning-fast doorstep delivery.</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <strong>500+</strong>
+                        <span>Dishes</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <strong>4.8 ★</strong>
+                        <span>Average Rating</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <strong>FREE</strong>
+                        <span>Delivery over $30</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image-wrapper">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80" alt="Delicious Food" class="hero-img">
+            </div>
+        </section>
+
+        <!-- Category Filters -->
+        <section class="categories-section">
+            <div class="section-header">
+                <h2>Browse by Category</h2>
+            </div>
+            <div class="category-chips" id="categoryChips">
+                <button class="chip active" onclick="filterCategory('all', this)"><i class="fa-solid fa-border-all"></i> All Items</button>
+                <button class="chip" onclick="filterCategory('Pizza', this)"><i class="fa-solid fa-pizza-slice"></i> Pizza</button>
+                <button class="chip" onclick="filterCategory('Burger', this)"><i class="fa-solid fa-burger"></i> Burgers</button>
+                <button class="chip" onclick="filterCategory('Curry', this)"><i class="fa-solid fa-bowl-rice"></i> Curries</button>
+                <button class="chip" onclick="filterCategory('Rice', this)"><i class="fa-solid fa-fire-burner"></i> Biryani & Rice</button>
+                <button class="chip" onclick="filterCategory('Sides', this)"><i class="fa-solid fa-cookie"></i> Snacks & Sides</button>
+            </div>
+        </section>
+
+        <!-- Restaurants View -->
+        <section class="restaurants-section" id="restaurantsSection">
+            <div class="section-header">
+                <div>
+                    <h2>Popular Restaurants</h2>
+                    <p class="section-subtitle">Top curated dining spots in your neighborhood</p>
+                </div>
+                <div class="filter-pills">
+                    <button class="pill active" onclick="sortRestaurants('rating')">Top Rated</button>
+                    <button class="pill" onclick="sortRestaurants('name')">Name</button>
+                </div>
+            </div>
+            <div class="restaurant-grid" id="restaurantGrid">
+                <!-- Dynamically populated -->
+                <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading restaurants...</div>
+            </div>
+        </section>
+
+        <!-- Menu / Food Items View (When a restaurant is clicked or browsing food) -->
+        <section class="menu-section" id="menuSection" style="display: none;">
+            <div class="menu-header">
+                <button class="back-btn" onclick="showAllRestaurants()">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Restaurants
+                </button>
+                <div id="restaurantBannerInfo" class="restaurant-banner-info"></div>
+            </div>
+            <div class="food-grid" id="foodGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Slide-in Cart Drawer -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <aside class="cart-drawer" id="cartDrawer">
+        <div class="cart-header">
+            <div class="cart-title">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <h3>Your Cart (<span id="cartCount">0</span>)</h3>
+            </div>
+            <button class="close-btn" onclick="toggleCart()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="cart-body" id="cartItemsContainer">
+            <div class="empty-cart">
+                <i class="fa-solid fa-basket-shopping empty-icon"></i>
+                <p>Your cart is empty</p>
+                <span>Add delicious items from the menu to start ordering</span>
+            </div>
+        </div>
+
+        <div class="cart-footer" id="cartFooter" style="display: none;">
+            <div class="bill-row">
+                <span>Subtotal</span>
+                <span id="billSubtotal">$0.00</span>
+            </div>
+            <div class="bill-row">
+                <span>Delivery Fee</span>
+                <span id="billDelivery">$2.99</span>
+            </div>
+            <div class="bill-row">
+                <span>Taxes & Fees (5%)</span>
+                <span id="billTax">$0.00</span>
+            </div>
+            <div class="bill-divider"></div>
+            <div class="bill-row total-row">
+                <strong>To Pay</strong>
+                <strong id="billTotal" class="total-amount">$0.00</strong>
+            </div>
+            <button class="checkout-btn" onclick="openCheckoutModal()">
+                <span>Proceed to Checkout</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Checkout Modal -->
+    <div class="modal-overlay" id="checkoutModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-truck-fast"></i> Complete Your Delivery</h3>
+                <button class="close-btn" onclick="closeCheckoutModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="checkoutForm" onsubmit="handlePlaceOrder(event)">
+                <div class="form-group">
+                    <label for="custName"><i class="fa-solid fa-user"></i> Full Name</label>
+                    <input type="text" id="custName" required placeholder="e.g. John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="custEmail"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <input type="email" id="custEmail" required placeholder="e.g. john@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="custAddress"><i class="fa-solid fa-location-dot"></i> Delivery Address</label>
+                    <textarea id="custAddress" required rows="3" placeholder="Enter flat/house no., street name, landmark..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-credit-card"></i> Payment Method</label>
+                    <div class="payment-options">
+                        <label class="pay-option">
+                            <input type="radio" name="payment" value="COD" checked>
+                            <span>💵 Cash on Delivery</span>
+                        </label>
+                        <label class="pay-option">
+                            <input type="radio" name="payment" value="CARD">
+                            <span>💳 Card / UPI</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-bill-summary">
+                    <span>Order Amount:</span>
+                    <strong id="modalTotalPay">$0.00</strong>
+                </div>
+
+                <button type="submit" class="submit-order-btn" id="submitOrderBtn">
+                    <span>Confirm & Place Order</span>
+                    <i class="fa-solid fa-check"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Success / Tracking Modal -->
+    <div class="modal-overlay" id="orderSuccessModal">
+        <div class="modal-card success-card">
+            <div class="success-animation">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h2>Order Placed Successfully!</h2>
+            <p class="order-id-label">Order #<span id="confirmedOrderId">101</span></p>
+
+            <div class="tracker-stepper">
+                <div class="step active">
+                    <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                    <span>Confirmed</span>
+                </div>
+                <div class="step-line active"></div>
+                <div class="step active">
+                    <div class="step-circle"><i class="fa-solid fa-fire"></i></div>
+                    <span>Cooking</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-circle"><i class="fa-solid fa-motorcycle"></i></div>
+                    <span>On the Way</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-circle"><i class="fa-solid fa-house"></i></div>
+                    <span>Delivered</span>
+                </div>
+            </div>
+
+            <div class="order-details-box">
+                <div class="detail-row">
+                    <span>Customer:</span>
+                    <strong id="trackCustName"></strong>
+                </div>
+                <div class="detail-row">
+                    <span>Delivery Address:</span>
+                    <strong id="trackCustAddress"></strong>
+                </div>
+                <div class="detail-row">
+                    <span>Items:</span>
+                    <span id="trackItems"></span>
+                </div>
+                <div class="detail-row">
+                    <span>Total Paid:</span>
+                    <strong id="trackTotal" style="color: var(--primary); font-size: 16px;"></strong>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="closeSuccessModal()">
+                Back to Food Menu
+            </button>
+        </div>
+    </div>
+
+    <!-- Past Orders Modal -->
+    <div class="modal-overlay" id="pastOrdersModal">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h3>
+                <button class="close-btn" onclick="closeOrdersModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="orders-list-body" id="pastOrdersList">
+                <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Fetching orders...</div>
+            </div>
+        </div>
+    <!-- Auth Modal (Login & Register) -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card auth-card">
+            <div class="modal-header">
+                <div class="auth-tabs">
+                    <button type="button" class="auth-tab active" id="loginTabBtn" onclick="switchAuthTab('login')">Sign In</button>
+                    <button type="button" class="auth-tab" id="registerTabBtn" onclick="switchAuthTab('register')">Create Account</button>
+                </div>
+                <button type="button" class="close-btn" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="authAlert" class="auth-alert" style="display: none;"></div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <input type="email" id="loginEmail" required placeholder="demo@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+                <div class="auth-demo-hint">
+                    <i class="fa-solid fa-circle-info"></i> Demo: <code>demo@example.com</code> / <code>password123</code>
+                </div>
+                <button type="submit" class="submit-order-btn" id="loginSubmitBtn">
+                    <span>Sign In</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
+                <p class="auth-switch-text">Don't have an account? <a href="javascript:void(0)" onclick="switchAuthTab('register')">Sign up here</a></p>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
+                <div class="form-group">
+                    <label for="regName"><i class="fa-solid fa-user"></i> Full Name</label>
+                    <input type="text" id="regName" required placeholder="e.g. Rahul Sharma">
+                </div>
+                <div class="form-group">
+                    <label for="regEmail"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <input type="email" id="regEmail" required placeholder="e.g. rahul@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="regPhone"><i class="fa-solid fa-phone"></i> Phone Number</label>
+                    <input type="tel" id="regPhone" placeholder="e.g. +91 9876543210">
+                </div>
+                <div class="form-group">
+                    <label for="regPassword"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="regPassword" required placeholder="At least 6 characters">
+                </div>
+                <button type="submit" class="submit-order-btn" id="registerSubmitBtn">
+                    <span>Create Account</span> <i class="fa-solid fa-user-plus"></i>
+                </button>
+                <p class="auth-switch-text">Already have an account? <a href="javascript:void(0)" onclick="switchAuthTab('login')">Sign in here</a></p>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
